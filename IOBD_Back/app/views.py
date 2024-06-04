@@ -2,8 +2,10 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate
-from .models import Users
+from .models import Users, Words, Sentences
 import json
+import random
+from django.core import serializers
 
 
 
@@ -20,9 +22,10 @@ def login(request):
         ver_password = request.POST.get('password')
         
         if (Users.objects.filter(username=ver_username).filter(password=ver_password).exists()) or (Users.objects.filter(email=ver_username).filter(password=ver_password).exists()):
-            return HttpResponse("loged in")
-        return HttpResponse("Niewłaściwe dane")
-    return HttpResponse("Bład przesyłania")
+            id = Users.objects.filter(username=ver_username).filter(password=ver_password).values("user_id").get()
+            return JsonResponse({"id":id},status=200)
+        return JsonResponse({'error':"dupa"}, status=404)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 @csrf_exempt
 def register(request):
@@ -37,4 +40,18 @@ def register(request):
         return HttpResponse("Not Done")
     return HttpResponse("Not Done")
 # Create your views here.
-  
+
+def get_word(request):
+    Table_size = Words.objects.count()
+    word_id = random.randint(0,Table_size-1)
+    word=Words.objects.values("word","translation","category").get(word_id=word_id)
+    return JsonResponse(word, safe=False)
+
+def get_sentence(request):
+    Table_size = Words.objects.count()
+    word_id = random.randint(0,Table_size-1)
+    word=Words.objects.get(word_id=word_id)
+    sentences = Sentences.objects.filter(word=word)
+    sentences_json = serializers.serialize("json",sentences)
+    print(sentences_json)
+    return JsonResponse(sentences_json, safe=False)
