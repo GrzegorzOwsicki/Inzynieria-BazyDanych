@@ -33,3 +33,11 @@ class Words(models.Model):
     class Meta:
         managed = False
         db_table = 'words'
+
+class Used_Words(models.Model):
+    user_id = models.IntegerField()
+    word_id = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'used_words'
